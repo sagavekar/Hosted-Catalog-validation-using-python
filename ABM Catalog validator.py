@@ -3,6 +3,8 @@ from openpyxl.styles import PatternFill
 from openpyxl.styles import numbers
 import logging
 import time
+import win32com.client as win32
+import pandas as pd
 
 start_time = time.time()
 
@@ -31,46 +33,76 @@ Pattern_warning = PatternFill(patternType="solid", fgColor="FF0000")
 # -----------------Defining colors end here ---------------------------
 
 # *****************Making some list / variable object for future use*******************
+
+df1 = pd.read_excel("From system.xlsx", sheet_name="Catalog Lines")
+df1["End Date"] = pd.to_datetime(df1['End Date'])
+df1_sorted_desc = df1.sort_values('End Date', ascending=False)
+farthest_date_row = df1_sorted_desc.iloc[0]
+farthest_date = farthest_date_row['End Date']
+farthest_date_str = farthest_date.strftime('%m/%d/%Y')
+Catalog_end_date = farthest_date_str
+
+df2 = pd.read_excel("From system.xlsx", sheet_name="Catalog Lines")
+df2["Start Date*"] = pd.to_datetime(df2['Start Date*'])
+df2_sorted_asc = df2.sort_values('Start Date*', ascending=True)
+closest_date_row = df2_sorted_asc.iloc[0]
+closest_date = closest_date_row['Start Date*']
+closest_date_str = closest_date.strftime('%m/%d/%Y')
+Catalog_start_date = closest_date_str
+print(Catalog_start_date)
+
+
 list_of_row = []  # not yet consumed
-list_of_SIN_from_supplier_data_sheet = []
-list_of_UNSPSC = [420250001930, 420250001931, 420250001932, 420250001933, 420250001934, 420250001935, 420250001936, 420250001937, 420250001938,
-                  420250001939, 420250001940, 420250001941, 420250001942, 420250001943, 420250001944, 420250001945, 420250001946, 420250001947,
-                  420250001948, 420250001949, 420250001950, 420250001951, 420250001952, 420250001953, 420250001954, 420250001955, 420250001956,
-                  420250001957, 420250001958, 420250001959, 420250001960, 420250001961, 420250001962, 420250001963, 420250001964, 420250001965,
-                  420250001966, 420250001967, 420250001968, 420250001969, 420250001970, 420250001971, 420250001972, 420250001973, 420250001974,
-                  420250001975, 420250001976, 420250001977, 420250001978, 420250001979, 420250001980, 420250001981, 420250001982, 420250001983,
-                  420250001984, 420250001985, 420250001986, 420250001987, 420250001988, 420250001989, 420250001990, 420250001991, 420250001992,
-                  420250001993, 420250001994, 420250001995, 420250001996, 420250001997, 420250001998, 420250001999, 420250002000, 420250002001,
-                  420250002002, 420250002003, 420250002004, 420250002005, 420250002006, 420250002007, 420250002008, 420250002009, 420250002010,
-                  420250002011, 420250002012, 420250002013, 420250002014, 420250002015, 420250002016, 420250002017, 420250002018, 420250002019,
-                  420250002020, 420250002021, 420250002022, 420250002023, 420250002024, 420250002025, 420250002026, 420250002027, 420250002028,
-                  420250002029, 420250002030, 420250002031, 420250002032, 420250002033, 420250002034, 420250002035, 420250002036, 420250002037,
-                  420250002038, 420250002039, 420250002040, 420250002041, 420250002042, 420250002043, 420250002044, 420250002045, 420250002046,
-                  420250002047, 420250002048, 420250002049, 420250002050, 420250002051, 420250002052, 420250002053, 420250002054, 420250002055,
-                  420250002056, 420250002057, 420250002058, 420250002059, 420250002060, 420250002061, 420250002062, 420250002063, 420250002064,
-                  420250002065, 420250002066, 420250002067, 420250002068, 420250002069, 420250002070, 420250002071, 420250002072, 420250002073,
-                  420250002074, 420250002075, 420250002076, 420250002077, 420250002078, 420250002079, 420250002080, 420250002081, 420250002082,
-                  420250002083, 420250002084, 420250002085, 420250002086, 420250002087, 420250002088, 420250002089, 420250002090, 420250002091,
-                  420250002092, 420250002093, 420250002094, 420250002095, 420250002096, 420250002097, 420250002098, 420250002099, 420250002100,
-                  420250002101, 420250002102, 420250002103, 420250002104, 420250002105, 420250002106, 420250002107, 420250002108, 420250002109,
-                  420250002110, 420250002111, 420250002112, 420250002113, 420250002114, 420250002115, 420250002116, 420250002117, 420250002118,
-                  420250002119, 420250002120, 420250002121, 420250002122, 420250002123, 420250002124, 420250002125, 420250002126, 420250002127,
-                  420250002128, 420250002129, 420250002130, 420250002131, 420250002132, 420250002133, 420250002134, 420250002135, 420250002136,
-                  420250002137, 420250002138, 420250002139, 420250002140, 420250002141, 420250002142, 420250002143, 420250002144, 420250002145,
-                  420250002146, 420250002147, 420250002148, 420250002149, 420250002150, 420250002151, 420250002152, 420250002153, 420250002154,
-                  420250002155, 420250002156, 420250002157, 420250002158, 420250002159, 420250002160, 420250002161, 420250002162, 420250002163,
-                  420250002164, 420250002165, 420250002166, 420250002167, 420250002168, 420250002169, 420250002170, 420250002171, 420250002172,
-                  420250002173, 420250002174, 420250002175, 420250002176, 420250002177, 420250002178, 420250002179, 420250002180, 420250002181,
-                  420250002182, 420250002183, 420250002184, 420250002185, 420250002186, 420250002187, 420250002188, 420250002189, 420250002190,
-                  420250002191, 420250002192, 420250002193, 420250002194, 420250002195, 420250002196, 420250002197, 420250002198, 420250002199,
-                  420250002200, 420250002201, 420250002202, 420250002203, 420250002204, 420250002205, 420250002206, 420250002207, 420250002208,
-                  420250002209, 420250002210, 420250002211, 420250002212, 420250002213, 420250002214, 420250002215, 420250002216, 420250002217,
-                  420250002218, 420250002219, 420250002220, 420250002221, 420250002222, 420250002223, 420250002224, 420250002225, 420250002226,
-                  420250002227, 420250002228, 420250002229, 420250002230, 420250002231, 420250002232, 420250002233, 420250002234, 420250002235,
-                  420250002236, 420250002237, 420250002238, 420250002239, 420250002240, 420250002241, 420250002242, 420250002243, 420250002244,
-                  420250002245, 420250002246, 420250002247, 420250002248, 420250002249, 420250002256, 420250002257, 420250002258, 420250002259,
-                  420250002260, 420250002261, 420250002262, 420250002265, 420250002267, 420250002268, 420250002269, 420250002270, 420250002271,
-                  420250002272, 420250002273, 420250002274]  # dtype should be int
+list_of_SIN_from_supplier_data_sheet = []  # not yet consumed
+YesOrNo = ["Yes","YES","yes","No","NO","no"]
+list_of_UNSPSC = ["420250001930","420250001931","420250001932","420250001933","420250001934","420250001935","420250002274",
+                  "420250001936","420250001937","420250001938","420250001939","420250001940","420250001941","420250001942",
+                  "420250001943","420250001944","420250001945","420250001946","420250001947","420250001948","420250001949",
+                  "420250001950","420250001951","420250001952","420250001953","420250001954","420250001955","420250001956",
+                  "420250001957","420250001958","420250001959","420250001960","420250001961","420250001962","420250001963",
+                  "420250001964","420250001965","420250001966","420250001967","420250001968","420250001969","420250001970",
+                  "420250001971","420250001972","420250001973","420250001974","420250001975","420250001976","420250001977",
+                  "420250001978","420250001979","420250001980","420250001981","420250001982","420250001983","420250001984",
+                  "420250001985","420250001986","420250001987","420250001988","420250001989","420250001990","420250001991",
+                  "420250001992","420250001993","420250001994","420250001995","420250001996","420250001997","420250001998",
+                  "420250001999","420250002000","420250002001","420250002002","420250002003","420250002004","420250002005",
+                  "420250002006","420250002007","420250002008","420250002009","420250002010","420250002011","420250002012",
+                  "420250002013","420250002014","420250002015","420250002016","420250002017","420250002018","420250002019",
+                  "420250002020","420250002021","420250002022","420250002023","420250002024","420250002025","420250002026",
+                  "420250002027","420250002028","420250002029","420250002030","420250002031","420250002032","420250002033",
+                  "420250002034","420250002035","420250002036","420250002037","420250002038","420250002039","420250002040",
+                  "420250002041","420250002042","420250002043","420250002044","420250002045","420250002046","420250002047",
+                  "420250002048","420250002049","420250002050","420250002051","420250002052","420250002053","420250002054",
+                  "420250002055","420250002056","420250002057","420250002058","420250002059","420250002060","420250002061",
+                  "420250002062","420250002063","420250002064","420250002065","420250002066","420250002067","420250002068",
+                  "420250002069","420250002070","420250002071","420250002072","420250002073","420250002074","420250002075",
+                  "420250002076","420250002077","420250002078","420250002079","420250002080","420250002081","420250002082",
+                  "420250002083","420250002084","420250002085","420250002086","420250002087","420250002088","420250002089",
+                  "420250002090","420250002091","420250002092","420250002093","420250002094","420250002095","420250002096",
+                  "420250002097","420250002098","420250002099","420250002100","420250002101","420250002102","420250002103",
+                  "420250002104","420250002105","420250002106","420250002107","420250002108","420250002109","420250002110",
+                  "420250002111","420250002112","420250002113","420250002114","420250002115","420250002116","420250002117",
+                  "420250002118","420250002119","420250002120","420250002121","420250002122","420250002123","420250002124",
+                  "420250002125","420250002126","420250002127","420250002128","420250002129","420250002130","420250002131",
+                  "420250002132","420250002133","420250002134","420250002135","420250002136","420250002137","420250002138",
+                  "420250002139","420250002140","420250002141","420250002142","420250002143","420250002144","420250002145",
+                  "420250002146","420250002147","420250002148","420250002149","420250002150","420250002151","420250002152",
+                  "420250002153","420250002154","420250002155","420250002156","420250002157","420250002158","420250002159",
+                  "420250002160","420250002161","420250002162","420250002163","420250002164","420250002165","420250002166",
+                  "420250002167","420250002168","420250002169","420250002170","420250002171","420250002172","420250002173",
+                  "420250002174","420250002175","420250002176","420250002177","420250002178","420250002179","420250002180",
+                  "420250002181","420250002182","420250002183","420250002184","420250002185","420250002186","420250002187",
+                  "420250002188","420250002189","420250002190","420250002191","420250002192","420250002193","420250002194",
+                  "420250002195","420250002196","420250002197","420250002198","420250002199","420250002200","420250002201",
+                  "420250002202","420250002203","420250002204","420250002205","420250002206","420250002207","420250002208",
+                  "420250002209","420250002210","420250002211","420250002212","420250002213","420250002214","420250002215",
+                  "420250002216","420250002217","420250002218","420250002219","420250002220","420250002221","420250002222",
+                  "420250002223","420250002224","420250002225","420250002226","420250002227","420250002228","420250002229",
+                  "420250002230","420250002231","420250002232","420250002233","420250002234","420250002235","420250002236",
+                  "420250002237","420250002238","420250002239","420250002240","420250002241","420250002242","420250002243",
+                  "420250002244","420250002245","420250002246","420250002247","420250002248","420250002249","420250002256",
+                  "420250002257","420250002258","420250002259","420250002260","420250002261","420250002262","420250002265",
+                  "420250002267","420250002268","420250002269","420250002270","420250002271","420250002272","420250002273"]  
 list_of_UOM = ['10', '11', '13', '14', '15', '16', '17', '18', '19', '1A', '1B', '1C', '1D', '1E', '1F', '1G', '1H', '1I', '1J', '1K', '1L', '1M', '1X', '20',
                '21', '22', '23', '24', '25', '26', '27', '28', '29', '2A', '2B', '2C', '2I', '2J', '2K', '2L', '2M', '2N', '2P', '2Q', '2R', '2U', '2V', '2W', '2X', '2Y',
                '2Z', '30', '31', '32', '33', '34', '35', '36', '37', '38', '3B', '3C', '3E', '3G', '3H', '3I', '40', '41', '43', '44', '45', '46', '47', '48', '4A', '4B',
@@ -157,7 +189,7 @@ for i in supplier_data_sheet.iter_rows(min_row=2):
             i[0].value = "create" #smallcase create to identify the operation conversion from update to create
             i[0].fill = Pattern_purple
 
-    elif ( Operation == "None" or len(Operation) == 4 ):  # take care of NULL operation
+    elif ( Operation == "None" or len(Operation) == 0 ):  # take care of NULL operation
         i[0].value = "Not in use"
         i[0].fill = Pattern_red
     else:
@@ -166,7 +198,7 @@ for i in supplier_data_sheet.iter_rows(min_row=2):
 # ----------------------"A.Operation" column data validation Ends here.---------------------------------
 
 
-# *********************"Rest all column data validation begins from here.*************************
+# ********************* Rest all column data validation begins from here.exclusive for "update" opration*************************
 for i in supplier_data_sheet.iter_rows(min_row=2):
     if (i[0].value == "update" or i[0].value == "UPDATE" or i[0].value == "Update"):
         # print(i[4].row)
@@ -175,95 +207,121 @@ for i in supplier_data_sheet.iter_rows(min_row=2):
         row_num_from_supplier_data_sheet = i[4].row
         # print(row_num_from_supplier_data_sheet)
 
-        if supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=3).value is None:
+        
+        #************Type validation starts here***************
+        Type = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=3).value).strip()
+        if (Type is None or Type == "None" or len(Type) == 0) :
             supplier_data_sheet.cell(
                 row=row_num_from_supplier_data_sheet, column=3).value = "Material"  # Type
             supplier_data_sheet.cell(
                 row=row_num_from_supplier_data_sheet, column=3).fill = Pattern_purple
+        elif (Type == "Marerial" or Type == "material" or Type == "MATERIAL"):
+             supplier_data_sheet.cell(
+                row=row_num_from_supplier_data_sheet, column=3).fill = Pattern_purple         
+        #-----------Type validation starts here--------------
 
-        # Buyer Item Number, removing buyer item num
+        #************Buyer Item Number validation starts here***************
         supplier_data_sheet.cell(
             row=row_num_from_supplier_data_sheet, column=4).value = None
         supplier_data_sheet.cell(
             row=row_num_from_supplier_data_sheet, column=4).fill = Pattern_purple
-
+        #-----------Buyer Item Number validation starts here--------------
+        
+        #*******Loop on system data starts here********** 
         for j in system_data_sheet.iter_rows(min_row=2):
 
-            if str(j[4].value) == SIN:
+            if str(j[4].value) == SIN: # Match found
+                
+                #*******Fetching line num corresponding to SIN from sytem data starts here*******
                 supplier_data_sheet.cell(
                     row=row_num_from_supplier_data_sheet, column=2).value = j[1].value  # Line Number*
                 supplier_data_sheet.cell(
                     row=row_num_from_supplier_data_sheet, column=2).fill = Pattern_purple
+                #--------- Fetching line num corresponding to SIN from sytem data Ends here--------
 
-                if (supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=6).value is None):  # Short Name*
+                #************Short Name* validation starts here***************
+                Short_name = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=6).value).strip()
+                if (Short_name is None or Short_name == "None"): 
                     supplier_data_sheet.cell(
                         row=row_num_from_supplier_data_sheet, column=6).value = j[5].value
                     supplier_data_sheet.cell(
                         row=row_num_from_supplier_data_sheet, column=6).fill = Pattern_purple
                 else:
-                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=6).value = str(supplier_data_sheet.cell(
-                        row=row_num_from_supplier_data_sheet, column=6).value)[0:40]  # Limiting 40 char in short name
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=6).value = Short_name[0:40]  # Limiting 40 char in short name
                     supplier_data_sheet.cell(
                         row=row_num_from_supplier_data_sheet, column=6).fill = Pattern_purple
-
-                if (supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=7).value is None):  # Item Description*
+                #-------Short Name* validation ends here------------
+                
+                #************Item Description* validation starts here***************  
+                Item_Description = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=7).value).strip()
+                if (Item_Description is None or Item_Description == "None"):  
                     supplier_data_sheet.cell(
                         row=row_num_from_supplier_data_sheet, column=7).value = j[6].value
                     supplier_data_sheet.cell(
                         row=row_num_from_supplier_data_sheet, column=7).fill = Pattern_purple
                 else:
-                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=7).value = str(supplier_data_sheet.cell(
-                        row=row_num_from_supplier_data_sheet, column=7).value)[0:1000]  # Limiting 1000 char in desc
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=7).value = Item_Description[0:1000]  # Limiting 1000 char in desc
                     supplier_data_sheet.cell(
                         row=row_num_from_supplier_data_sheet, column=7).fill = Pattern_purple
-
-                if (supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=8).value is None or
-                        supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=8).value not in list_of_UNSPSC):  # UNSPSC**
+                #-------------Item Description* validation ends here------------
+                
+                #************ UNSPSC* validation starts here*************** 
+                UNSPSC = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=8).value).strip()
+                if (UNSPSC is None or UNSPSC == "None" or UNSPSC not in list_of_UNSPSC):
                     supplier_data_sheet.cell(
                         row=row_num_from_supplier_data_sheet, column=8).value = j[7].value
                     supplier_data_sheet.cell(
                         row=row_num_from_supplier_data_sheet, column=8).fill = Pattern_purple
-                elif (supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=8).value in list_of_UNSPSC):
+                elif (UNSPSC in list_of_UNSPSC):
                     supplier_data_sheet.cell(
                         row=row_num_from_supplier_data_sheet, column=8).fill = Pattern_purple
+                #------------- UNSPSC* validation ends here------------
 
-                # Category ID** , removal of data
+                #************ Category ID**  validation starts here **************
                 supplier_data_sheet.cell(
                     row=row_num_from_supplier_data_sheet, column=9).value = None
                 supplier_data_sheet.cell(
                     row=row_num_from_supplier_data_sheet, column=9).fill = Pattern_purple
-
-                if (supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=11).value is None):  # Keywords
+                #------------- Category ID**  validation starts here -------------
+                
+                #************ Keywords  validation starts here **************
+                Keywords = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=11).value).strip()
+                if (Keywords is None or Keywords == "None"):  
                     supplier_data_sheet.cell(
                         row=row_num_from_supplier_data_sheet, column=11).value = j[10].value
                     supplier_data_sheet.cell(
                         row=row_num_from_supplier_data_sheet, column=11).fill = Pattern_purple
                 else:
-
-                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=11).value = str(
-                        supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=11).value)[0:400]  # Limiting 400 char
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=11).value = Keywords[0:400]  # Limiting 400 char
                     supplier_data_sheet.cell(
                         row=row_num_from_supplier_data_sheet, column=11).fill = Pattern_purple
+                #---------------- Keywords  validation starts here ---------------
 
-                if (supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=12).value is None or
-                        not ((supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=12).value).isdigit())):  # Lead time
+
+                #************  Lead time  validation starts here **************
+                Lead_time = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=12).value).strip()
+                if ( Lead_time is None or Lead_time == "None" or not (Lead_time.isdigit())):  
                     supplier_data_sheet.cell(
                         row=row_num_from_supplier_data_sheet, column=12).value = j[11].value
                     supplier_data_sheet.cell(
                         row=row_num_from_supplier_data_sheet, column=12).fill = Pattern_purple
-                elif ((supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=12).value).isdigit()):
+                elif (Lead_time.isdigit()):
                     supplier_data_sheet.cell(
                         row=row_num_from_supplier_data_sheet, column=12).fill = Pattern_purple
                 else:
                     pass
+                #---------------- Lead time validation starts here ---------------
 
+                #*************Currency Code* should be USD always*************    
                 supplier_data_sheet.cell(
                     row=row_num_from_supplier_data_sheet, column=13).value = "USD"
                 supplier_data_sheet.cell(
-                    row=row_num_from_supplier_data_sheet, column=13).fill = Pattern_purple     # Currency Code* should be USD always
+                    row=row_num_from_supplier_data_sheet, column=13).fill = Pattern_purple   
+                #---------------Currency Code* should be USD always-------------    
 
                 # *************Price validation starts here***************
-                if (supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=14).value is None) and (supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=10).value == "No") and (supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=1).value == "UPDATE"):  # price*
+                Price = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=14).value).strip()
+                if (Price == "None" or Price is None) and (supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=10).value == "No") and (supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=1).value == "UPDATE"): 
                     supplier_data_sheet.cell(
                         row=row_num_from_supplier_data_sheet, column=14).value = j[13].value
                     supplier_data_sheet.cell(
@@ -271,29 +329,29 @@ for i in supplier_data_sheet.iter_rows(min_row=2):
                 elif type(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=14).value) == float:
                     supplier_data_sheet.cell(
                         row=row_num_from_supplier_data_sheet, column=14).fill = Pattern_purple
-                elif (supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=14).value is None) and (supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=1).value == "Update" or supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=1).value == "update"):
+                elif (Price is None or Price == "None") and (supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=1).value == "Update" or supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=1).value == "update"):
                     logging.warning(
                         f"Price against SIN = {SIN} is not provided, please check {i[13]}")
                     supplier_data_sheet.cell(
                         row=row_num_from_supplier_data_sheet, column=14).fill = Pattern_warning
-                elif (str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=14).value).isalpha()):
+                elif (Price.isalpha()):
                     logging.warning(
                         f"Price against SIN = {SIN} not in valid datatype, please check {i[13]}")
                     supplier_data_sheet.cell(
                         row=row_num_from_supplier_data_sheet, column=14).fill = Pattern_warning
                 # -------------price validation ends here---------------------
 
-
-                if (supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=15).value is None or
-                        supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=15).value not in list_of_UOM):  # UOM*
+                # ************* UOM* validation starts here***************
+                UOM = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=15).value).strip()
+                if ( UOM is None or UOM not in list_of_UOM):  
                     supplier_data_sheet.cell(
                         row=row_num_from_supplier_data_sheet, column=15).value = j[14].value
                     supplier_data_sheet.cell(
                         row=row_num_from_supplier_data_sheet, column=15).fill = Pattern_purple
-                elif (supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=15).value in list_of_UOM):
+                elif (UOM in list_of_UOM):
                     supplier_data_sheet.cell(
                         row=row_num_from_supplier_data_sheet, column=15).fill = Pattern_purple
-
+                # ------------- UOM* validation ends here---------------------
 
 
                 #********Supported UOM validation starts here*********************
@@ -312,41 +370,46 @@ for i in supplier_data_sheet.iter_rows(min_row=2):
                     supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=19).value = None  
                     supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=18).fill = Pattern_purple
                     supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=19).fill = Pattern_purple
-                #--------Supported UOM validation ends here-----------------------
+                #Supported UOM validation ends here-----------------------
 
-
-                supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=20).value = None #Price per UOM
+                #********Price per UOM validation starts here********
+                supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=20).value = None 
                 supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=20).fill = Pattern_purple
+                #--------Price per UOM validation starts here--------
 
-
-                if ((supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=21).value is None) or
-                    (str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=21).value)).isspace()):  # Manufacturer
+                #********Manufacturer validation starts here********
+                Manufacturer = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=21).value).strip()
+                if (Manufacturer is None or Manufacturer == "None" ):  # 
                     supplier_data_sheet.cell(
                         row=row_num_from_supplier_data_sheet, column=21).value = j[20].value
                     supplier_data_sheet.cell( 
                         row=row_num_from_supplier_data_sheet, column=21).fill = Pattern_purple
                 else:
                     pass
+                #--------Manufacturer validation starts here--------
 
-
-                if ((supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=22).value is None) or
-                    (str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=22).value)).isspace()):  # Manufacturer Part Number
+                #********Manufacturer Part Number validation starts here********
+                Manufacturer_Part_Number = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=22).value).strip()
+                if ( Manufacturer_Part_Number == "None"):  
                     supplier_data_sheet.cell(
                         row=row_num_from_supplier_data_sheet, column=22).value = j[21].value
                     supplier_data_sheet.cell( 
                         row=row_num_from_supplier_data_sheet, column=22).fill = Pattern_purple
                 else:
                     pass
-
-                if ((supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=23).value is None) or
-                    (str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=23).value)).isspace()):  #Manufacturer Model Number
+                #--------Manufacturer Part Number validation starts here--------
+                
+                #********Manufacturer Model Number validation starts here********
+                Manufacturer_Model_Number = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=23).value).strip()
+                if (Manufacturer_Model_Number is None):  
                     supplier_data_sheet.cell(
                         row=row_num_from_supplier_data_sheet, column=23).value = j[22].value
                     supplier_data_sheet.cell( 
                         row=row_num_from_supplier_data_sheet, column=23).fill = Pattern_purple
                 else:
                     pass
-
+                #--------Manufacturer Model Number validation starts here-------- 
+                        
                 #**********Minimum Order Quantity validation starts here*************         
                 MinOQ = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=24).value).strip()
                 """print(MinOQ, len(MinOQ) , MinOQ == "None")
@@ -386,7 +449,7 @@ for i in supplier_data_sheet.iter_rows(min_row=2):
 
                 #*********Is Tax Exempt validation starts here************
                 Is_Tax_Exempt = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=27).value).strip()   
-                YesOrNo = ["Yes","YES","yes","No","NO","no"]
+
                 if ( (Is_Tax_Exempt) == "None" or (len(Is_Tax_Exempt) == 0) or (Is_Tax_Exempt in YesOrNo) ):    
                     supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=27).fill = Pattern_purple
                 else:
@@ -399,7 +462,8 @@ for i in supplier_data_sheet.iter_rows(min_row=2):
                 if (  (Contract_Number == "None")  or (len(Contract_Number) <= 200)):
                     supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=28).fill = Pattern_purple
                 else: # lets limit it to 200 char
-                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=28).value = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=28))[0:200]
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=28).value = Contract_Number[0:200]
+                    logging.warning(f"{SIN}, Contract number exceding char limit, pls check {i[27]}")
                 #-------------Contract Number validation ends here----------
 
                 #*********Contract Line Number validation starts here************
@@ -410,17 +474,23 @@ for i in supplier_data_sheet.iter_rows(min_row=2):
                     supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=29).value = None
                     supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=29).fill = Pattern_purple    
                 #-------------Contract Line Number validation ends here----------
-
-
-
+                
+                
+#-----------------need to rewrite start and end date logic
+                #*********Start date validation starts here************ 
                 supplier_data_sheet.cell(
                     row=row_num_from_supplier_data_sheet, column=30).value = j[29].value  # Start date
                 supplier_data_sheet.cell(
                     row=row_num_from_supplier_data_sheet, column=30).fill = Pattern_purple
-
+                #-------------Start date validation ends here----------
+                
+#--------------------------------------------end data val needs to rewrite
                 #*********End date validation starts here************    
-                supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=31).value = j[30].value  # End date
-                supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=31).fill = Pattern_purple
+                End_date = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=31).value).strip()
+                if End_date == "None" or len(End_date) == 0:
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=31).value = j[30].value  # 
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=31).fill = Pattern_purple
+                    
                 #-------------End date validation ends here----------
 
                 #*********GTIN validation starts here************
@@ -466,6 +536,16 @@ for i in supplier_data_sheet.iter_rows(min_row=2):
                     supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=35).fill = Pattern_purple
 
                 #-------------Green product validation ends here---------- 
+        #*******Loop on system data Ends here**********        
+#---------------"Rest all column data validation begins from here.exclusive for "update" opration------------------------
+                
 end_time = time.time()                    
 print("Execution time :",round((end_time-start_time) * 10**3,3), "ms")
 supplier_data.save("save.xlsx")
+
+#*******Opening of newly created excel*******
+saved_excel = win32.gencache.EnsureDispatch('Excel.Application')
+saved_excel.Visible = True
+file_load = "C:\SET-TSO\Python Projects\ABM catalog validator\save.xlsx"
+wb = saved_excel.Workbooks.Open(file_load)
+#--------Opening of newly created excel-------
