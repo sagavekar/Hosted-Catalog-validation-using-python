@@ -3,6 +3,8 @@ from openpyxl.styles import PatternFill
 from openpyxl.styles import numbers
 import logging
 import time
+from datetime import datetime
+from datetime import date as d
 import win32com.client as win32
 import pandas as pd
 
@@ -55,6 +57,7 @@ print(Catalog_start_date)
 list_of_row = []  # not yet consumed
 list_of_SIN_from_supplier_data_sheet = []  # not yet consumed
 YesOrNo = ["Yes","YES","yes","No","NO","no"]
+Supported_image_formates = [".JPEG",".jpeg",".JPG",".jpg"]
 list_of_UNSPSC = ["420250001930","420250001931","420250001932","420250001933","420250001934","420250001935","420250002274",
                   "420250001936","420250001937","420250001938","420250001939","420250001940","420250001941","420250001942",
                   "420250001943","420250001944","420250001945","420250001946","420250001947","420250001948","420250001949",
@@ -476,21 +479,15 @@ for i in supplier_data_sheet.iter_rows(min_row=2):
                 #-------------Contract Line Number validation ends here----------
                 
                 
-#-----------------need to rewrite start and end date logic
                 #*********Start date validation starts here************ 
-                supplier_data_sheet.cell(
-                    row=row_num_from_supplier_data_sheet, column=30).value = j[29].value  # Start date
-                supplier_data_sheet.cell(
-                    row=row_num_from_supplier_data_sheet, column=30).fill = Pattern_purple
+                supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=30).value = j[29].value
+                supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=30).fill = Pattern_purple                       
                 #-------------Start date validation ends here----------
                 
-#--------------------------------------------end data val needs to rewrite
-                #*********End date validation starts here************    
-                End_date = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=31).value).strip()
-                if End_date == "None" or len(End_date) == 0:
-                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=31).value = j[30].value  # 
-                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=31).fill = Pattern_purple
-                    
+                
+                #*********End date validation starts here************ 
+                supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=31).value = j[30].value  
+                supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=31).fill = Pattern_purple    
                 #-------------End date validation ends here----------
 
                 #*********GTIN validation starts here************
@@ -498,17 +495,17 @@ for i in supplier_data_sheet.iter_rows(min_row=2):
                 if (  (GTIN == "None")  or (len(GTIN) <= 40)):
                     supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=32).fill = Pattern_purple
                 else: # lets limit it to 200 char
-                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=32).value = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=32))[0:40]
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=32).value = GTIN[0:40]
                 #-------------GTIN validation ends here----------        
 
 
                 #*********Image URL validation starts here************  
                 Image_URL = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=34).value).strip()
-                if ( ( Image_URL == "None" or len(Image_URL) == 0  ) and j[33].value is not None):
+                if ( ( Image_URL == "None" or len(Image_URL) == 0  ) and str(j[33].value).strip() != "None"):
                     supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=34).value = j[33].value
                     supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=34).fill = Pattern_purple
                 elif ( ( Image_URL != "None" or len(Image_URL) != 0  )):
-                    #validate the URl
+                    #validate the URL formates here
                     if ( ( Image_URL[-4::] == ".jpg" ) or (Image_URL[-5::] == ".jpeg") or (Image_URL[-4::] == ".JPG") or (Image_URL[-5::] == ".JPEG")):
                         supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=34).fill = Pattern_purple 
                     else:
@@ -530,6 +527,7 @@ for i in supplier_data_sheet.iter_rows(min_row=2):
                     supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=35).value = "Yes"
                     supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=35).fill = Pattern_purple
                 elif (Green_product == "No"  or Green_product == "NO"):
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=35).value = "No"
                     supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=35).fill = Pattern_purple
                 else:
                     supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=35).value = "Unknown"
@@ -537,7 +535,347 @@ for i in supplier_data_sheet.iter_rows(min_row=2):
 
                 #-------------Green product validation ends here---------- 
         #*******Loop on system data Ends here**********        
-#---------------"Rest all column data validation begins from here.exclusive for "update" opration------------------------
+#---------------"Rest all column data validation ends here.exclusive for "update" opration------------------------
+ 
+ 
+# ********************* Rest all column data validation begins from here.exclusive for "Create" opration********************
+for i in supplier_data_sheet.iter_rows(min_row=2):
+    if (i[0].value == "update" or i[0].value == "UPDATE" or i[0].value == "Update"):
+        # print(i[4].row)
+        SIN = str(i[4].value).strip()
+        # print(SIN)
+        row_num_from_supplier_data_sheet = i[4].row
+        # print(row_num_from_supplier_data_sheet)
+
+        
+        #************Type validation starts here***************
+        Type = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=3).value).strip()
+        if (Type is None or Type == "None" or len(Type) == 0) :
+            supplier_data_sheet.cell(
+                row=row_num_from_supplier_data_sheet, column=3).value = "Material"  # Type
+            supplier_data_sheet.cell(
+                row=row_num_from_supplier_data_sheet, column=3).fill = Pattern_purple
+        elif (Type == "Marerial" or Type == "material" or Type == "MATERIAL"):
+             supplier_data_sheet.cell(
+                row=row_num_from_supplier_data_sheet, column=3).fill = Pattern_purple         
+        #-----------Type validation starts here--------------
+
+        #************Buyer Item Number validation starts here***************
+        supplier_data_sheet.cell(
+            row=row_num_from_supplier_data_sheet, column=4).value = None
+        supplier_data_sheet.cell(
+            row=row_num_from_supplier_data_sheet, column=4).fill = Pattern_purple
+        #-----------Buyer Item Number validation starts here--------------
+        
+        #*******Loop on system data starts here********** 
+        for j in system_data_sheet.iter_rows(min_row=2):
+
+            if str(j[4].value) == SIN: # Match found
+                
+                #*******Fetching line num corresponding to SIN from sytem data starts here*******
+                supplier_data_sheet.cell(
+                    row=row_num_from_supplier_data_sheet, column=2).value = j[1].value  # Line Number*
+                supplier_data_sheet.cell(
+                    row=row_num_from_supplier_data_sheet, column=2).fill = Pattern_purple
+                #--------- Fetching line num corresponding to SIN from sytem data Ends here--------
+
+                #************Short Name* validation starts here***************
+                Short_name = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=6).value).strip()
+                if (Short_name is None or Short_name == "None"): 
+                    supplier_data_sheet.cell(
+                        row=row_num_from_supplier_data_sheet, column=6).value = j[5].value
+                    supplier_data_sheet.cell(
+                        row=row_num_from_supplier_data_sheet, column=6).fill = Pattern_purple
+                else:
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=6).value = Short_name[0:40]  # Limiting 40 char in short name
+                    supplier_data_sheet.cell(
+                        row=row_num_from_supplier_data_sheet, column=6).fill = Pattern_purple
+                #-------Short Name* validation ends here------------
+                
+                #************Item Description* validation starts here***************  
+                Item_Description = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=7).value).strip()
+                if (Item_Description is None or Item_Description == "None"):  
+                    supplier_data_sheet.cell(
+                        row=row_num_from_supplier_data_sheet, column=7).value = j[6].value
+                    supplier_data_sheet.cell(
+                        row=row_num_from_supplier_data_sheet, column=7).fill = Pattern_purple
+                else:
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=7).value = Item_Description[0:1000]  # Limiting 1000 char in desc
+                    supplier_data_sheet.cell(
+                        row=row_num_from_supplier_data_sheet, column=7).fill = Pattern_purple
+                #-------------Item Description* validation ends here------------
+                
+                #************ UNSPSC* validation starts here*************** 
+                UNSPSC = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=8).value).strip()
+                if (UNSPSC is None or UNSPSC == "None" or UNSPSC not in list_of_UNSPSC):
+                    supplier_data_sheet.cell(
+                        row=row_num_from_supplier_data_sheet, column=8).value = j[7].value
+                    supplier_data_sheet.cell(
+                        row=row_num_from_supplier_data_sheet, column=8).fill = Pattern_purple
+                elif (UNSPSC in list_of_UNSPSC):
+                    supplier_data_sheet.cell(
+                        row=row_num_from_supplier_data_sheet, column=8).fill = Pattern_purple
+                #------------- UNSPSC* validation ends here------------
+
+                #************ Category ID**  validation starts here **************
+                supplier_data_sheet.cell(
+                    row=row_num_from_supplier_data_sheet, column=9).value = None
+                supplier_data_sheet.cell(
+                    row=row_num_from_supplier_data_sheet, column=9).fill = Pattern_purple
+                #------------- Category ID**  validation starts here -------------
+                
+                #************ Keywords  validation starts here **************
+                Keywords = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=11).value).strip()
+                if (Keywords is None or Keywords == "None"):  
+                    supplier_data_sheet.cell(
+                        row=row_num_from_supplier_data_sheet, column=11).value = j[10].value
+                    supplier_data_sheet.cell(
+                        row=row_num_from_supplier_data_sheet, column=11).fill = Pattern_purple
+                else:
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=11).value = Keywords[0:400]  # Limiting 400 char
+                    supplier_data_sheet.cell(
+                        row=row_num_from_supplier_data_sheet, column=11).fill = Pattern_purple
+                #---------------- Keywords  validation starts here ---------------
+
+
+                #************  Lead time  validation starts here **************
+                Lead_time = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=12).value).strip()
+                if ( Lead_time is None or Lead_time == "None" or not (Lead_time.isdigit())):  
+                    supplier_data_sheet.cell(
+                        row=row_num_from_supplier_data_sheet, column=12).value = j[11].value
+                    supplier_data_sheet.cell(
+                        row=row_num_from_supplier_data_sheet, column=12).fill = Pattern_purple
+                elif (Lead_time.isdigit()):
+                    supplier_data_sheet.cell(
+                        row=row_num_from_supplier_data_sheet, column=12).fill = Pattern_purple
+                else:
+                    pass
+                #---------------- Lead time validation starts here ---------------
+
+                #*************Currency Code* should be USD always*************    
+                supplier_data_sheet.cell(
+                    row=row_num_from_supplier_data_sheet, column=13).value = "USD"
+                supplier_data_sheet.cell(
+                    row=row_num_from_supplier_data_sheet, column=13).fill = Pattern_purple   
+                #---------------Currency Code* should be USD always-------------    
+
+                # *************Price validation starts here***************
+                Price = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=14).value).strip()
+                if (Price == "None" or Price is None) and (supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=10).value == "No") and (supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=1).value == "UPDATE"): 
+                    supplier_data_sheet.cell(
+                        row=row_num_from_supplier_data_sheet, column=14).value = j[13].value
+                    supplier_data_sheet.cell(
+                        row=row_num_from_supplier_data_sheet, column=14).fill = Pattern_purple
+                elif type(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=14).value) == float:
+                    supplier_data_sheet.cell(
+                        row=row_num_from_supplier_data_sheet, column=14).fill = Pattern_purple
+                elif (Price is None or Price == "None") and (supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=1).value == "Update" or supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=1).value == "update"):
+                    logging.warning(
+                        f"Price against SIN = {SIN} is not provided, please check {i[13]}")
+                    supplier_data_sheet.cell(
+                        row=row_num_from_supplier_data_sheet, column=14).fill = Pattern_warning
+                elif (Price.isalpha()):
+                    logging.warning(
+                        f"Price against SIN = {SIN} not in valid datatype, please check {i[13]}")
+                    supplier_data_sheet.cell(
+                        row=row_num_from_supplier_data_sheet, column=14).fill = Pattern_warning
+                # -------------price validation ends here---------------------
+
+                # ************* UOM* validation starts here***************
+                UOM = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=15).value).strip()
+                if ( UOM is None or UOM not in list_of_UOM):  
+                    supplier_data_sheet.cell(
+                        row=row_num_from_supplier_data_sheet, column=15).value = j[14].value
+                    supplier_data_sheet.cell(
+                        row=row_num_from_supplier_data_sheet, column=15).fill = Pattern_purple
+                elif (UOM in list_of_UOM):
+                    supplier_data_sheet.cell(
+                        row=row_num_from_supplier_data_sheet, column=15).fill = Pattern_purple
+                # ------------- UOM* validation ends here---------------------
+
+
+                #********Supported UOM validation starts here*********************
+                Supported_UOM = supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=18).value 
+                Conversion_Factors = supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=19).value
+
+                if Supported_UOM in list_of_UOM and (Conversion_Factors is not None or str(Conversion_Factors).isspace()):
+                    if (type(Conversion_Factors) == float or type(Conversion_Factors) == int) or ( str(Conversion_Factors).isdecimal() or str(Conversion_Factors).isdigit()):
+                        supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=18).fill = Pattern_purple
+                        supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=19).fill = Pattern_purple
+                    else:
+                        supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=18).value = None
+                        supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=19).value = None  
+                else:
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=18).value = None
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=19).value = None  
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=18).fill = Pattern_purple
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=19).fill = Pattern_purple
+                #Supported UOM validation ends here-----------------------
+
+                #********Price per UOM validation starts here********
+                supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=20).value = None 
+                supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=20).fill = Pattern_purple
+                #--------Price per UOM validation starts here--------
+
+                #********Manufacturer validation starts here********
+                Manufacturer = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=21).value).strip()
+                if (Manufacturer is None or Manufacturer == "None" ):  # 
+                    supplier_data_sheet.cell(
+                        row=row_num_from_supplier_data_sheet, column=21).value = j[20].value
+                    supplier_data_sheet.cell( 
+                        row=row_num_from_supplier_data_sheet, column=21).fill = Pattern_purple
+                else:
+                    pass
+                #--------Manufacturer validation starts here--------
+
+                #********Manufacturer Part Number validation starts here********
+                Manufacturer_Part_Number = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=22).value).strip()
+                if ( Manufacturer_Part_Number == "None"):  
+                    supplier_data_sheet.cell(
+                        row=row_num_from_supplier_data_sheet, column=22).value = j[21].value
+                    supplier_data_sheet.cell( 
+                        row=row_num_from_supplier_data_sheet, column=22).fill = Pattern_purple
+                else:
+                    pass
+                #--------Manufacturer Part Number validation starts here--------
+                
+                #********Manufacturer Model Number validation starts here********
+                Manufacturer_Model_Number = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=23).value).strip()
+                if (Manufacturer_Model_Number is None):  
+                    supplier_data_sheet.cell(
+                        row=row_num_from_supplier_data_sheet, column=23).value = j[22].value
+                    supplier_data_sheet.cell( 
+                        row=row_num_from_supplier_data_sheet, column=23).fill = Pattern_purple
+                else:
+                    pass
+                #--------Manufacturer Model Number validation starts here-------- 
+                        
+                #**********Minimum Order Quantity validation starts here*************         
+                MinOQ = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=24).value).strip()
+                """print(MinOQ, len(MinOQ) , MinOQ == "None")
+                print(i[23]) -- some exercise to understand system behavoir"""
+
+                if ( (MinOQ) == "None" or (len(MinOQ) == 0) or (MinOQ.isdigit()) ):
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=24).fill = Pattern_purple
+                else:
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=24).value = None
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=24).fill = Pattern_purple
+                    #logging.warning(f"MinOQ against SIN= {SIN} seems wrong datatype on cell = {i[23]}") 
+                #----------Minimum Order Quantity validation end here------------------
+
+
+                #**********Maximum Order Quantity validation starts here*************         
+                MaxOQ = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=25).value).strip()
+
+                if ( (MaxOQ) == "None" or (len(MaxOQ) == 0) or (MaxOQ.isdigit()) ):
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=25).fill = Pattern_purple
+                else:
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=25).value = None
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=25).fill = Pattern_purple
+                    #logging.warning(f"MaxOQ against SIN= {SIN} seems wrong datatype on cell = {i[24]}") 
+                #----------------Maximum Order Quantity validation end here----------
+
+                #**********Banding validation starts here*************         
+                Banding = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=26).value).strip()
+
+                if ( (Banding) == "None" or (len(Banding) == 0) or (Banding.isdigit()) ):
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=26).fill = Pattern_purple
+                else:
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=26).value = None
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=26).fill = Pattern_purple
+                    #logging.warning(f"MaxOQ against SIN= {SIN} seems wrong datatype on cell = {i[25]}") 
+                #--------------Banding validation end here-----------------
+
+
+                #*********Is Tax Exempt validation starts here************
+                Is_Tax_Exempt = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=27).value).strip()   
+
+                if ( (Is_Tax_Exempt) == "None" or (len(Is_Tax_Exempt) == 0) or (Is_Tax_Exempt in YesOrNo) ):    
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=27).fill = Pattern_purple
+                else:
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=27).value = None    
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=27).fill = Pattern_purple
+                #-------------Is Tax Exempt validation ends here----------
+
+                #*********Contract Number validation starts here************
+                Contract_Number = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=28).value).strip()
+                if (  (Contract_Number == "None")  or (len(Contract_Number) <= 200)):
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=28).fill = Pattern_purple
+                else: # lets limit it to 200 char
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=28).value = Contract_Number[0:200]
+                    logging.warning(f"{SIN}, Contract number exceding char limit, pls check {i[27]}")
+                #-------------Contract Number validation ends here----------
+
+                #*********Contract Line Number validation starts here************
+                Contract_Line_Number = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=29).value).strip()
+                if (  (Contract_Line_Number == "None")  or (len(Contract_Line_Number) == 0) or (Contract_Line_Number.isdigit()) ):
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=29).fill = Pattern_purple
+                else:
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=29).value = None
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=29).fill = Pattern_purple    
+                #-------------Contract Line Number validation ends here----------
+                
+                
+                #*********Start date validation starts here************ 
+                supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=30).value = j[29].value
+                supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=30).fill = Pattern_purple                       
+                #-------------Start date validation ends here----------
+                
+                
+                #*********End date validation starts here************ 
+                supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=31).value = j[30].value  
+                supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=31).fill = Pattern_purple    
+                #-------------End date validation ends here----------
+
+                #*********GTIN validation starts here************
+                GTIN = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=32).value).strip()
+                if (  (GTIN == "None")  or (len(GTIN) <= 40)):
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=32).fill = Pattern_purple
+                else: # lets limit it to 200 char
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=32).value = GTIN[0:40]
+                #-------------GTIN validation ends here----------        
+
+
+                #*********Image URL validation starts here************  
+                Image_URL = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=34).value).strip()
+                if ( ( Image_URL == "None" or len(Image_URL) == 0  ) and str(j[33].value).strip() != "None"):
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=34).value = j[33].value
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=34).fill = Pattern_purple
+                elif ( ( Image_URL != "None" or len(Image_URL) != 0  )):
+                    #validate the URL formates here
+                    if ( ( Image_URL[-4::] == ".jpg" ) or (Image_URL[-5::] == ".jpeg") or (Image_URL[-4::] == ".JPG") or (Image_URL[-5::] == ".JPEG")):
+                        supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=34).fill = Pattern_purple 
+                    else:
+                        logging.warning(f"URL of SIN = {SIN} at invalid , pls check {i[33]}")   
+                        supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=34).fill = Pattern_warning  
+                else:
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=34).fill = Pattern_warning
+
+                #-------------Image URL validation ends here----------          
+
+
+                #*********Green product validation starts here************
+                Green_product = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=35).value).strip()
+                
+                if ( ( Green_product == "None" or len(Green_product) == 0 or Green_product not in YesOrNo ) and j[34].value is not None):
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=35).value = j[34].value
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=35).fill = Pattern_purple
+                elif (Green_product == "Green" or Green_product == "GREEN" or Green_product == "Yes"  or Green_product == "YES"):
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=35).value = "Yes"
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=35).fill = Pattern_purple
+                elif (Green_product == "No"  or Green_product == "NO"):
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=35).value = "No"
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=35).fill = Pattern_purple
+                else:
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=35).value = "Unknown"
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=35).fill = Pattern_purple
+
+                #-------------Green product validation ends here---------- 
+        #*******Loop on system data Ends here**********        
+
+# ---------------- Rest all column data validation ends  here.exclusive for "Create" opration-----------------
+
+ 
                 
 end_time = time.time()                    
 print("Execution time :",round((end_time-start_time) * 10**3,3), "ms")
@@ -549,3 +887,27 @@ saved_excel.Visible = True
 file_load = "C:\SET-TSO\Python Projects\ABM catalog validator\save.xlsx"
 wb = saved_excel.Workbooks.Open(file_load)
 #--------Opening of newly created excel-------
+
+
+
+
+""" Code dump -->
+                #start date validation hard try
+                Start_date_temp = str(supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=30).value).strip()
+                Start_date = Start_date_temp.replace(" 00:00:00","")
+                if (Start_date == "None" or len(Start_date) == 0):
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=30).value = j[29].value
+                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=30).fill = Pattern_purple
+                
+                try:
+                    if(datetime.strptime(Start_date, "%m/%d/%Y") < datetime.strptime(Catalog_start_date, "%m/%d/%Y")):
+                        supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=30).value = Catalog_start_date
+                        supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=30).fill = Pattern_purple   
+                except:
+                    pass
+                
+                
+                if(datetime.strptime(Start_date, "%m-%d-%Y") < datetime.strptime(Catalog_start_date, "%m/%d/%Y")):
+                        supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=30).value = Catalog_start_date
+                        supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=30).fill = Pattern_purple 
+"""
