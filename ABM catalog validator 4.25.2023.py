@@ -51,7 +51,7 @@ def full_validation():
 
     # *****************Making some list / variable object for future use*******************
 
-    df1 = pd.read_excel("From system.xlsx", sheet_name="Catalog Lines")
+    df1 = pd.read_excel(file_path[0], sheet_name="Catalog Lines")
     df1["End Date"] = pd.to_datetime(df1['End Date'])
     df1_sorted_desc = df1.sort_values('End Date', ascending=False)
     farthest_date_row = df1_sorted_desc.iloc[0]
@@ -59,7 +59,7 @@ def full_validation():
     farthest_date_str = farthest_date.strftime('%m/%d/%Y')
     Catalog_end_date = farthest_date_str
 
-    df2 = pd.read_excel("From system.xlsx", sheet_name="Catalog Lines")
+    df2 = pd.read_excel(file_path[0], sheet_name="Catalog Lines")
     df2["Start Date*"] = pd.to_datetime(df2['Start Date*'])
     df2_sorted_asc = df2.sort_values('Start Date*', ascending=True)
     closest_date_row = df2_sorted_asc.iloc[0]
