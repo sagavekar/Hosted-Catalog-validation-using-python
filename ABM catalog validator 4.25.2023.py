@@ -385,7 +385,7 @@ def full_validation():
                     Supported_UOM = supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=18).value 
                     Conversion_Factors = supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=19).value
 
-                    if Supported_UOM in list_of_UOM and (Conversion_Factors is not None or str(Conversion_Factors).isspace()):
+                    if (Supported_UOM in list_of_UOM) and (Conversion_Factors is not None or str(Conversion_Factors).isspace()) and (Supported_UOM !=UOM):
                         if (type(Conversion_Factors) == float or type(Conversion_Factors) == int) or ( str(Conversion_Factors).isdecimal() or str(Conversion_Factors).isdigit()):
                             supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=18).fill = Pattern_purple
                             supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=19).fill = Pattern_purple
@@ -713,7 +713,7 @@ def full_validation():
             Supported_UOM = supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=18).value 
             Conversion_Factors = supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=19).value
 
-            if Supported_UOM in list_of_UOM and (Conversion_Factors is not None or str(Conversion_Factors).isspace()):
+            if Supported_UOM in list_of_UOM and (Conversion_Factors is not None or str(Conversion_Factors).isspace()) and  (Supported_UOM != UOM):
                 if (type(Conversion_Factors) == float or type(Conversion_Factors) == int) or ( str(Conversion_Factors).isdecimal() or str(Conversion_Factors).isdigit()):
                     supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=18).fill = Pattern_purple
                     supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=19).fill = Pattern_purple
@@ -870,8 +870,8 @@ def full_validation():
             #-------------Green product validation ends here---------- 
     end_time = time.time()
     ex_time = f"Execution time is {round((end_time-start_time) ,3)} sec"
-    time_label3 = tk.Label(root, text=ex_time,font="Tahoma 13", )
-    time_label3.pack()
+    tk.messagebox.showinfo("Task completed",ex_time)
+    
     # ---------------- Rest all column data validation ends  here.exclusive for "Create" opration-----------------
 
     
@@ -891,8 +891,8 @@ def full_validation():
 #***** GUI buidling starts here********
 file_path = []
 def clear_path():
-    file_path.pop(0)
-    file_path.pop(1)
+    file_path.clear()
+
     
     
 def browse_file1():
