@@ -194,7 +194,7 @@ def full_validation():
         # print(i[4].value)
         Operation = str(i[0].value).strip()
         if (Operation == "delete" or Operation == "DELETE" or Operation == "Delete"):  # [0] stands for Operation
-            i[0].value = "UPDATE" # capital UPDATE to identify the delete operation later
+            i[0].value = "UPdate" # capital UPdate to identify the delete operation later
             i[0].fill = Pattern_purple
             i[9].value = "No"
             i[9].fill = Pattern_purple
@@ -205,13 +205,13 @@ def full_validation():
             i[9].fill = Pattern_purple
             i[0].fill = Pattern_purple  # just to indicate the this cell is validated
 
-            if str(i[4].value).strip() in list_of_SIN_from_supplier_data_sheet:
+            if (str(i[4].value).strip() in list_of_SIN_from_supplier_data_sheet) :
                 i[0].value = "update" # smallcase update to identify the operation conversion from create to update
                 i[0].fill = Pattern_purple
 
         # take care of update operation
         elif (Operation == "update" or Operation == "UPDATE" or Operation == "Update"):
-            if str(i[4].value).strip() not in list_of_SIN_from_supplier_data_sheet:
+            if ( str(i[4].value).strip() not in list_of_SIN_from_supplier_data_sheet ) and ( "0"+str(i[4].value).strip() not in list_of_SIN_from_supplier_data_sheet):
                 i[0].value = "create" #smallcase create to identify the operation conversion from update to create
                 i[0].fill = Pattern_purple
 
@@ -389,19 +389,21 @@ def full_validation():
                         if (type(Conversion_Factors) == float or type(Conversion_Factors) == int) or ( str(Conversion_Factors).isdecimal() or str(Conversion_Factors).isdigit()):
                             supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=18).fill = Pattern_purple
                             supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=19).fill = Pattern_purple
+                            
+                            supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=20).value = float(Conversion_Factors)*float(Price)
+                            supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=20).fill = Pattern_purple
                         else:
                             supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=18).value = None
                             supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=19).value = None  
                     else:
                         supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=18).value = None
-                        supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=19).value = None  
                         supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=18).fill = Pattern_purple
+                        supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=19).value = None
                         supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=19).fill = Pattern_purple
                     #Supported UOM validation ends here-----------------------
 
                     #********Price per UOM validation starts here********
-                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=20).value = None 
-                    supplier_data_sheet.cell(row=row_num_from_supplier_data_sheet, column=20).fill = Pattern_purple
+                    #this has been done in above code already
                     #--------Price per UOM validation starts here--------
 
                     #********Manufacturer validation starts here********
@@ -883,7 +885,7 @@ def full_validation():
     #*******Opening of newly created excel*******
 """    saved_excel = win32.gencache.EnsureDispatch('Excel.Application')
     saved_excel.Visible = True
-    file_load = "save.xlsx"
+    file_load = "C:\\SET-TSO\\ABM Catalog Maintenance\\wk18\\To upload\\North American SustainOne ABM6\\save.xlsx"
     wb = saved_excel.Workbooks.Open(file_load)"""
     #--------Opening of newly created excel-------
 
@@ -930,6 +932,7 @@ def load_files():
 
 root = tk.Tk()
 root.geometry("500x360")
+root.configure(background="#F0F0F0")
 root.title("ABM Catalog validator")
 
 root.minsize(250,250)
