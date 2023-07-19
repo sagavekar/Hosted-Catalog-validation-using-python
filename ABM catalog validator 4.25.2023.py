@@ -243,7 +243,7 @@ def full_validation():
                     row=row_num_from_supplier_data_sheet, column=3).value = "Material"  # Type
                 supplier_data_sheet.cell(
                     row=row_num_from_supplier_data_sheet, column=3).fill = Pattern_purple
-            elif (Type == "Marerial" or Type == "material" or Type == "MATERIAL"):
+            elif (Type.lower() == "material"):
                 supplier_data_sheet.cell(
                     row=row_num_from_supplier_data_sheet, column=3).fill = Pattern_purple         
             #-----------Type validation starts here--------------
