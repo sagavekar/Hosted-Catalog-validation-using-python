@@ -16,14 +16,13 @@ from tkinter import filedialog
 def full_validation():
     start_time = time.time()
     supplier_data = openpyxl.load_workbook(file_path[1])# workbookname
-    system_data = openpyxl.load_workbook(file_path[0])  # workbookname
+    system_data = openpyxl.load_workbook(file_path[0])  # workbookname ,filepath will come from GUI 
 
     system_data_sheet = system_data["Catalog Lines"]  # sheet name
 
     sheet_f = "" # temp sheet name variable
     if "Catalog Lines" in supplier_data.sheetnames:
-        supplier_data_sheet = supplier_data["Catalog Lines"]  # sheet name
-
+        supplier_data_sheet = supplier_data["Catalog Lines"]    
     elif "catalog lines" in supplier_data.sheetnames:
         supplier_data_sheet = supplier_data["catalog lines"]
 
@@ -77,10 +76,10 @@ def full_validation():
     line_number_series = list(range(min(line_num_in_existing_catalog), max(line_num_in_existing_catalog) + 1))
     difference_line_number = sorted(list(set(line_number_series) - set(line_num_in_existing_catalog)))
 
-    list_of_row = []  # not yet consumed
+    #list_of_row = []  # not yet consumed
 
     YesOrNo = ["Yes","YES","yes","No","NO","no"]
-    Supported_image_formates = [".JPEG",".jpeg",".JPG",".jpg"]
+    #Supported_image_formates = [".JPEG",".jpeg",".JPG",".jpg"]
     list_of_UNSPSC = ["420250001930","420250001931","420250001932","420250001933","420250001934","420250001935","420250002274",
                     "420250001936","420250001937","420250001938","420250001939","420250001940","420250001941","420250001942",
                     "420250001943","420250001944","420250001945","420250001946","420250001947","420250001948","420250001949",
@@ -183,35 +182,38 @@ def full_validation():
                     'VI', 'VLT', 'VQ', 'VS', 'W2', 'W4', 'WA', 'WB', 'WCD', 'WE', 'WEB', 'WEE', 'WG', 'WH', 'WHR', 'WI', 'WM', 'WR', 'WSD',
                     'WTT', 'WW', 'X1', 'YDK', 'YDQ', 'YL', 'YRD', 'YT', 'Z1', 'Z2', 'Z3', 'Z4', 'Z5', 'Z6', 'Z8', 'ZP', 'ZZ']
 
-    list_of_SIN_from_supplier_data_sheet = []
+    SIN_from_system_datasheet = []
     for k in system_data_sheet.iter_rows(min_row=2):
-        list_of_SIN_from_supplier_data_sheet.append(str(k[4].value))
+        SIN_from_system_datasheet.append(str(k[4].value))
     # ----------------- some list object for future use ----------------------------
-
+    
+    Operation_count = 0 # will display this at last
 
     # *********************"A.Operation" column data validation begins from here.*************************
     for i in supplier_data_sheet.iter_rows(min_row=2):
-        # print(i[4].value)
         Operation = str(i[0].value).strip()
-        if (Operation == "delete" or Operation == "DELETE" or Operation == "Delete"):  # [0] stands for Operation
+        if (Operation.lower() == "delete"):  # [0] stands for Operation
             i[0].value = "UPdate" # capital UPdate to identify the delete operation later
             i[0].fill = Pattern_purple
             i[9].value = "No"
             i[9].fill = Pattern_purple
+            Operation_count+=1 # increare operation count by 1
 
         # take care of create operation
-        elif (Operation == "create" or Operation == "CREATE" or Operation == "Create"):
+        elif (Operation.lower() == "create"):
             i[9].value = "Yes"
             i[9].fill = Pattern_purple
             i[0].fill = Pattern_purple  # just to indicate the this cell is validated
+            Operation_count+=1 # increare operation count by 1
 
-            if (str(i[4].value).strip() in list_of_SIN_from_supplier_data_sheet) :
+            if (str(i[4].value).strip() in SIN_from_system_datasheet) :
                 i[0].value = "update" # smallcase update to identify the operation conversion from create to update
                 i[0].fill = Pattern_purple
 
         # take care of update operation
-        elif (Operation == "update" or Operation == "UPDATE" or Operation == "Update"):
-            if ( str(i[4].value).strip() not in list_of_SIN_from_supplier_data_sheet ) and ( "0"+str(i[4].value).strip() not in list_of_SIN_from_supplier_data_sheet):
+        elif (Operation.lower() == "update"):
+            Operation_count+=1 # increare operation count by 1
+            if ( str(i[4].value).strip() not in SIN_from_system_datasheet ) and ( "0"+str(i[4].value).strip() not in SIN_from_system_datasheet):
                 i[0].value = "create" #smallcase create to identify the operation conversion from update to create
                 i[0].fill = Pattern_purple
 
@@ -226,7 +228,7 @@ def full_validation():
 
     # ********************* Rest all column data validation begins from here.exclusive for "update" opration*************************
     for i in supplier_data_sheet.iter_rows(min_row=2):
-        if (i[0].value == "update" or i[0].value == "UPDATE" or i[0].value == "Update"):
+        if (i[0].value == "update" or i[0].value == "UPDATE" or i[0].value == "Update" or i[0].value == "UPdate"):
             # print(i[4].row)
             SIN = str(i[4].value).strip()
             # print(SIN)
@@ -871,8 +873,8 @@ def full_validation():
 
             #-------------Green product validation ends here---------- 
     end_time = time.time()
-    ex_time = f"Execution time is {round((end_time-start_time) ,3)} sec"
-    tk.messagebox.showinfo("Task completed",ex_time)
+    ex_time = f"Total operations = {Operation_count} and Execution time is {round((end_time-start_time) ,3)} sec" 
+    tk.messagebox.showinfo("Task completed",ex_time,)
     
     # ---------------- Rest all column data validation ends  here.exclusive for "Create" opration-----------------
 
