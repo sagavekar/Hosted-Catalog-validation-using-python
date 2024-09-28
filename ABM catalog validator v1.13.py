@@ -5,6 +5,8 @@ import datetime
 import pandas as pd
 import tkinter as tk
 from tkinter import filedialog, ttk
+# from icecream import ic
+from itertools import groupby
 from os.path import splitext, basename
 
 
@@ -585,6 +587,16 @@ def full_validation():
 
     Operation_count = 0  # will display this at last
     Completed_loop = 0  # will display this tk.root
+    # We will collect rows to delete, since modifying the sheet while iterating can cause issues
+    rows_to_delete = []
+
+    # Function to find consecutive row ranges
+    def get_consecutive_ranges(row_numbers):
+        ranges = []
+        for k, g in groupby(enumerate(row_numbers), lambda ix: ix[0] - ix[1]):
+            group = list(g)
+            ranges.append((group[0][1], group[-1][1]))
+        return ranges
 
     # *********************"A.Operation" column data validation begins from here.*************************
     for i in supplier_data_sheet.iter_rows(min_row=2):
@@ -622,15 +634,24 @@ def full_validation():
                 i[0].fill = Pattern_purple
 
         # take care of NULL operation
+        # Collect the row number if Operation is None or empty
         elif Operation == "None" or len(Operation) == 0:
-            i[0].value = "Not in use"
-            i[0].fill = Pattern_red
+            rows_to_delete.append(i[0].row)
+            # i[0].value = "Not in use"
+            # i[0].fill = Pattern_red
         else:
             logging.warning(
                 f"{i[4].value} , Operation column value out of scope of program"
             )
             i[0].fill = Pattern_warning
     # ----------------------"A.Operation" column data validation Ends here.---------------------------------
+
+    # Find consecutive ranges of rows to delete in bulk
+    consecutive_row_ranges = get_consecutive_ranges(rows_to_delete)
+
+    # Delete consecutive row ranges in bulk
+    for start, end in reversed(consecutive_row_ranges):
+        supplier_data_sheet.delete_rows(start, end - start + 1)
 
     # ********************* Rest all column data validation begins from here.exclusive for "update" opration*************************
 
