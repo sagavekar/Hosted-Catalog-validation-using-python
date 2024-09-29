@@ -5,6 +5,7 @@ import datetime
 import pandas as pd
 import tkinter as tk
 from tkinter import filedialog, ttk
+
 # from icecream import ic
 from itertools import groupby
 from os.path import splitext, basename
@@ -2089,12 +2090,13 @@ def load_files():
     file_path.append(file_path1)
     file_path.append(file_path2)
     if file_path1 and file_path2:
-        pass
+        result = True
     else:
         tk.messagebox.showerror(
             title="Missing files", message="Please select both files first"
         )
-
+        result = False
+    return result
 
 def update_progress(Completed_loop, Operation_count):
     progress_percentage = (Completed_loop / Operation_count) * 100
@@ -2106,7 +2108,7 @@ root = tk.Tk()
 root.geometry("500x380")
 root.configure(background="#F0F0F0")
 root.title(
-    "ABM Catalog Validator V1.13 | @ Omkar.Sagavekar@GEP.com",
+    "ABM Catalog Validator V1.13 | sagavekar.om@gmail.com",
 )
 root.minsize(500, 390)
 
@@ -2148,23 +2150,10 @@ button2.pack()
 file_label2 = tk.Label(root, text="")
 file_label2.pack()
 
-submit_button = tk.Button(
-    root,
-    text="Submit",
-    command=load_files,
-    font="Tahoma 13",
-    width=16,
-    activebackground="blue",
-    relief="groove",
-    bg="#6EC5EC",
-    fg="black",
-)
-submit_button.pack(pady=5)
-
 run_button = tk.Button(
     root,
     text="Validate",
-    command=full_validation,
+    command=lambda: (load_files(), full_validation()),
     font="Tahoma 13",
     width=16,
     activebackground="blue",
